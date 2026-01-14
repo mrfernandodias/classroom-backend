@@ -1,6 +1,0 @@
-# Configuração do GitHub Copilot Code Review
-# Documentação: https://docs.github.com/en/copilot/using-github-copilot/code-review/using-copilot-code-review
-
-reviews:
-  language: "pt-BR"
-
