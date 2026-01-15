@@ -1,18 +1,24 @@
+import { corsConfig, PORT } from './config';
+import { sanitizeBody, sanitizeQuery } from './middlewares';
+import subjectsRouter from './routes/subjects';
 import express from 'express';
 
 const app = express();
-const PORT = 8000;
 
-// Middleware para parsear JSON
-// Em Laravel seria: $request->json() ou middleware de JSON automático
+// Middlewares globais
+app.use(corsConfig);
 app.use(express.json());
+app.use(sanitizeQuery); // Sanitiza query params automaticamente
+app.use(sanitizeBody); // Sanitiza body automaticamente
 
-// Rota raiz - equivalente a Route::get('/', ...) no Laravel
-app.get('/', (req, res) => {
+// Routes
+app.use('/api/subjects', subjectsRouter);
+
+app.get('/', (_req, res) => {
   res.json({ message: 'Welcome to the Classroom API!' });
 });
 
-// Inicia o servidor - equivalente a php artisan serve
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running at http://localhost:${PORT}`);
 });

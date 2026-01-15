@@ -1,0 +1,27 @@
+### Listar todos os subjects
+GET http://localhost:8000/api/subjects
+Content-Type: application/json
+
+### Listar com busca
+GET http://localhost:8000/api/subjects?search=math&page=1&limit=10
+Content-Type: application/json
+
+### Listar por departamento
+GET http://localhost:8000/api/subjects?department=CS
+Content-Type: application/json
+
+### Criar novo subject (exemplo)
+POST http://localhost:8000/api/subjects
+Content-Type: application/json
+
+{
+  "name": "Calculus I",
+  "code": "MATH101",
+  "departmentId": 1,
+  "description": "Introduction to calculus"
+}
+
+### Health check
+GET http://localhost:8000/
+Content-Type: application/json
+
