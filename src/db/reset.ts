@@ -1,6 +1,6 @@
+import { db } from './index';
 import { config } from 'dotenv';
 import { sql } from 'drizzle-orm';
-import { db } from './index';
 
 config();
 

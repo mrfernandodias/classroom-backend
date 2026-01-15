@@ -1,11 +1,17 @@
-import express from 'express';
-
-import { and, desc, eq, getTableColumns, ilike, or, sql } from 'drizzle-orm';
-
 import { db } from '../db';
 import { departments, subjects } from '../db/schema';
+import { and, desc, eq, getTableColumns, ilike, or, sql } from 'drizzle-orm';
+import express from 'express';
 
 const router = express.Router();
+
+/**
+ * Escapa caracteres especiais do LIKE/ILIKE para evitar comportamento inesperado
+ * Ex: "test%" vira "test\%" - busca literalmente por "test%" ao invés de padrão
+ */
+const escapeLikePattern = (value: string): string => {
+  return value.replace(/[%_\\]/g, (char) => `\\${char}`);
+};
 
 /**
  * GET /subjects - Lista todos os subjects com busca, filtro e paginação
@@ -21,9 +27,13 @@ router.get('/', async (req, res) => {
     // Em Laravel: $request->query('search'), $request->query('page', 1)
     const { search, department, page = 1, limit = 10 } = req.query;
 
-    // Garante valores mínimos (Math.max evita números negativos ou zero)
-    const currentPage = Math.max(1, +page); // +page converte string para number
-    const limitPerPage = Math.max(1, +limit);
+    // Garante valores mínimos e máximos para paginação
+    // Math.max evita números negativos ou zero
+    // Math.min evita valores muito grandes que poderiam sobrecarregar o banco
+    // Em Laravel seria: $request->validate(['limit' => 'integer|min:1|max:100'])
+    const MAX_LIMIT = 100;
+    const currentPage = Math.max(1, +page);
+    const limitPerPage = Math.min(Math.max(1, +limit), MAX_LIMIT);
 
     // Calcula offset para paginação
     // Página 1: offset 0, Página 2: offset 10, Página 3: offset 20...
@@ -41,16 +51,22 @@ router.get('/', async (req, res) => {
     // ilike = LIKE case-insensitive (ignora maiúsculas/minúsculas)
     // Em Laravel: ->where('name', 'ILIKE', "%{$search}%")
     //             ->orWhere('code', 'ILIKE', "%{$search}%")
+    // Nota: trim/stripTags já feito pelo middleware global, aqui só escapa para LIKE
     if (search) {
+      const sanitizedSearch = escapeLikePattern(String(search));
       filterConditions.push(
-        or(ilike(subjects.name, `%${search}%`), ilike(subjects.code, `%${search}%`))
+        or(
+          ilike(subjects.name, `%${sanitizedSearch}%`),
+          ilike(subjects.code, `%${sanitizedSearch}%`)
+        )
       );
     }
 
     // Se existe filtro de departamento, filtra pelo nome do departamento
     // Em Laravel: ->whereHas('department', fn($q) => $q->where('name', 'ILIKE', ...))
     if (department) {
-      filterConditions.push(ilike(departments.name, `%${department}%`));
+      const sanitizedDepartment = escapeLikePattern(String(department));
+      filterConditions.push(ilike(departments.name, `%${sanitizedDepartment}%`));
     }
 
     // Combina todos os filtros com AND (se houver algum)
@@ -112,10 +128,10 @@ router.get('/', async (req, res) => {
     // ============================================================
     // Em Laravel seria tratado pelo Handler ou try/catch no controller
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`GET /subjects error: ${error}`);
+    console.error(`GET /subjects error: ${errorMessage}`, error);
     res.status(500).json({
       success: false,
-      message: `Failed to get subjects: ${errorMessage}`,
+      message: 'Erro ao buscar disciplinas',
     });
   }
 });

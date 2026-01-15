@@ -1,13 +1,15 @@
-import express from 'express';
-
 import { corsConfig, PORT } from './config';
+import { sanitizeBody, sanitizeQuery } from './middlewares';
 import subjectsRouter from './routes/subjects';
+import express from 'express';
 
 const app = express();
 
-// Middlewares
+// Middlewares globais
 app.use(corsConfig);
 app.use(express.json());
+app.use(sanitizeQuery); // Sanitiza query params automaticamente
+app.use(sanitizeBody); // Sanitiza body automaticamente
 
 // Routes
 app.use('/api/subjects', subjectsRouter);

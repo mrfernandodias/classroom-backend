@@ -1,8 +1,7 @@
+import * as schema from './schema';
 import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
-
-import * as schema from './schema';
 
 // Carrega variáveis de ambiente - equivalente ao config() do Laravel
 config();
