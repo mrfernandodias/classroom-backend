@@ -4,6 +4,25 @@
  */
 
 /**
+ * Converte valor para inteiro positivo de forma segura
+ * Evita NaN e valores inválidos
+ *
+ * @param value - Valor a ser convertido (string, number, array, etc.)
+ * @param defaultValue - Valor padrão se conversão falhar
+ * @returns Inteiro positivo ou valor padrão
+ */
+export const toPositiveInt = (value: unknown, defaultValue: number): number => {
+  // Se for array, pega primeiro elemento (query params podem vir como array)
+  const raw = Array.isArray(value) ? value[0] : value;
+
+  // Converte para número
+  const num = typeof raw === 'string' ? parseInt(raw, 10) : Number(raw);
+
+  // Retorna default se NaN ou menor que 1
+  return Number.isNaN(num) || num < 1 ? defaultValue : num;
+};
+
+/**
  * Escapa caracteres especiais do LIKE/ILIKE para evitar comportamento inesperado
  * Ex: "test%" vira "test\%" - busca literalmente por "test%" ao invés de padrão
  *
